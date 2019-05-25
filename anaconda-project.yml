@@ -8,30 +8,24 @@ commands:
   test:
     unix: python -m pytest --pyargs nbconvert_pdfqt --cov nbconvert_pdfqt
   lab:ext:
-    unix: >
-      jupyter labextension install
-      @jupyter-widgets/jupyterlab-manager
-      bqplot
-      jupyter-matplotlib
+    unix: jupyter labextension install $(cat labex.txt)
   pdf:
     unix: python -m nbconvert --to webpdf
 
 env_specs:
   default:
     inherit_from:
-      - default
       - test
     packages:
       - tornado <6
-      - pyqt >=5.9,<6
       - nodejs
       - ipympl
       - bqplot
-      - jupyterlab >=0.35,<0.36
       - ipywidgets >=7
+
   test:
     inherit_from:
-      - default
+      - nbcpdfqt
     packages:
       - pytest
       - pytest-cov
@@ -41,14 +35,7 @@ env_specs:
       - conda-forge
       - defaults
     packages:
-      - bleach
-      - defusedxml
-      - entrypoints >=0.2.2
-      - jinja2 >=2.4
-      - jupyter_core
-      - mistune >=0.8.1
-      - nbformat >=4.4
-      - pandocfilters >=1.4.1
-      - pygments
-      - testpath
-      - traitlets >=4.2
+      - nbconvert
+      - pyqt >=5.9,<6
+      - python >=3.7,<3.8
+      - jupyterlab >=0.35,<0.36

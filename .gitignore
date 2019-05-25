@@ -1,4 +1,7 @@
+__pycache__/
+.ipynb_checkpoints/
+*.egg-info
+*.pyc
 envs/
 node_modules/
-.ipynb_checkpoints/
 Untitled*.*

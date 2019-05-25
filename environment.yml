@@ -6,3 +6,4 @@ dependencies:
   - nbconvert
   - pyqt >=5.9,<6
   - python >=3.7,<3.8
+  - jupyterlab >=0.35,<0.36
