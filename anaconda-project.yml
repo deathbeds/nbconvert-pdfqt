@@ -10,7 +10,7 @@ commands:
   lab:ext:
     unix: jupyter labextension install $(cat labex.txt)
   pdf:
-    unix: python -m nbconvert --to webpdf
+    unix: python -m nbconvert --to pdfqt
 
 env_specs:
   default:
