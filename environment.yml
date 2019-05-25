@@ -1,0 +1,8 @@
+name: nbcpdfqt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - nbconvert
+  - pyqt >=5.9,<6
+  - python >=3.7,<3.8
