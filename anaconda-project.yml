@@ -13,24 +13,33 @@ commands:
     unix: python -m nbconvert --to pdfqt
 
 env_specs:
-  default:
-    inherit_from:
-      - test
+  demo:
+    channels:
+      - conda-forge
+      - defaults
     packages:
-      - tornado <6
-      - nodejs
-      - ipympl
+      - altair
+      - bokeh
       - bqplot
+      - importnb
+      - ipympl
       - ipywidgets >=7
+      - jupyterlab >=0.35,<0.36
+      - nbconvert
+      - nodejs
+      - pyqt >=5.9,<6
+      - python >=3.7,<3.8
+      - pythreejs
+      - tornado <6
 
   test:
     inherit_from:
-      - nbcpdfqt
+      - base
     packages:
       - pytest
       - pytest-cov
 
-  nbcpdfqt:
+  base:
     channels:
       - conda-forge
       - defaults
