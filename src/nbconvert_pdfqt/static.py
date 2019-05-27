@@ -71,3 +71,20 @@ setTimeout(function(){
     window.lab.commands.execute('notebook:run-all-cells');
 }, 3000);
 """
+
+MEASURE = f"""
+    var bb = document.querySelector(".jp-Cell:last-child").getBoundingClientRect();
+    var node = document.querySelector(".jp-ApplicationShell").style;
+    var body = document.body.style;
+    node.height = node.minHeight = body.height = body.minHeight = bb.bottom + "px";
+    {SINGLE_DOCUMENT % 0}
+    [bb.bottom, bb.right]
+"""
+
+APPLY_STYLE = f"""
+    var style = document.createElement("style");
+    style.textContent = `{LAB_STYLE}`;
+    document.body.appendChild(style);
+    {SINGLE_DOCUMENT % 2000}
+    {RUN_ALL}
+"""
