@@ -5,12 +5,15 @@ commands:
     unix: jupyter lab --no-browser
   setup:
     unix: python -m pip install -e . --ignore-installed --no-deps
-  test:
-    unix: python -m pytest --pyargs nbconvert_pdfqt --cov nbconvert_pdfqt
   lab:ext:
     unix: jupyter labextension install $(cat labex.txt)
   pdf:
     unix: python -m nbconvert --to pdfqt
+  test:
+    unix: |-
+      python -m pip install -e . --ignore-installed --no-deps \
+      && python -m pytest
+    env_spec: test
 
 env_specs:
   demo:
@@ -38,6 +41,7 @@ env_specs:
     packages:
       - pytest
       - pytest-cov
+      - pytest-xvfb
 
   base:
     channels:
