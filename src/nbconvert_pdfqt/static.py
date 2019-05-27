@@ -88,3 +88,9 @@ APPLY_STYLE = f"""
     {SINGLE_DOCUMENT % 2000}
     {RUN_ALL}
 """
+
+BRIDGE = """
+new QWebChannel(qt.webChannelTransport, function(channel) {
+    channel.objects.page.print('Hello world!');
+});
+"""

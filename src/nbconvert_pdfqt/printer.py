@@ -4,10 +4,10 @@ from uuid import uuid4
 import socket
 
 
-from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets, QtGui, QtWebChannel
 
 from .lab import LabProcess
-from .static import SINGLE_DOCUMENT, APPLY_STYLE, FORCE_DEV, MEASURE
+from .static import SINGLE_DOCUMENT, APPLY_STYLE, FORCE_DEV, MEASURE, BRIDGE
 
 
 class QPDFPage(QtWebEngineWidgets.QWebEnginePage):
@@ -21,6 +21,37 @@ class QPDFPage(QtWebEngineWidgets.QWebEnginePage):
 
         self.loadFinished.connect(self._load_finished)
         self.loadProgress.connect(self._load_progress)
+        self.profile().scripts().insert(self._qwc_script())
+        self.channel = QtWebChannel.QWebChannel(self)
+        self.setWebChannel(self.channel)
+        self.channel.registerObject('page', self)
+
+    def _qwc_js(self):
+        qfile = QtCore.QFile(':/qtwebchannel/qwebchannel.js')
+        qfile.open(QtCore.QIODevice.ReadOnly)
+        return bytes(qfile.readAll()).decode('utf-8')
+
+    def _qwc_script(self):
+        script = QtWebEngineWidgets.QWebEngineScript()
+        script.setSourceCode(f"""
+            {self._qwc_js()}
+            {BRIDGE}
+        """)
+        script.setName('xxx')
+        script.setWorldId(QtWebEngineWidgets.QWebEngineScript.MainWorld)
+        script.setInjectionPoint(QtWebEngineWidgets.QWebEngineScript.DocumentReady)
+        script.setRunsOnSubFrames(True)
+        return script
+
+    def javaScriptConsoleMessage(self, level, msg, linenumber, source_id):
+        try:
+            print('%s:%s: %s' % (source_id, linenumber, msg))
+        except OSError:
+            pass
+
+    @QtCore.pyqtSlot(str)
+    def print(self, text):
+        print('From JS:', text)
 
     def _load_progress(self, *args):
         self.runJavaScript(FORCE_DEV)
