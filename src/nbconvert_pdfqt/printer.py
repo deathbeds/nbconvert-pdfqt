@@ -17,6 +17,10 @@ body {
     --jp-layout-color2: transparent;
     --jp-layout-color3: transparent;
     --jp-cell-editor-background: transparent;
+    --jp-border-width: 0;
+    --jp-border-color0: transparent;
+    --jp-border-color1: transparent;
+    --jp-border-color2: transparent;
 }
 body,
 body .jp-ApplicationShell {
@@ -63,6 +67,7 @@ if(cfg) {
 """
 
 SINGLE_DOCUMENT = """
+window.lab.shell.removeClass('jp-mod-devMode');
 let cmd = window.lab.commands;
 setTimeout(function(){
     cmd.execute('application:set-mode', {mode: 'single-document'});
@@ -110,14 +115,10 @@ class QPDFPage(QtWebEngineWidgets.QWebEnginePage):
         """, lambda size: self.emit_pdf(size))
 
     def emit_pdf(self, size):
-        print("QSIZE", self.contentsSize().__dict__)
-        print("emitting", size)
-        print("SIZE", size, self.dpi)
-        # dims = size[0] / self.dpi * self.scale_hack, size[1] / self.dpi * self.scale_hack
-        dims = size[0] / 72, size[1] / 72
-        page_size = QtGui.QPageSize(QtCore.QSizeF(10, 10), QtGui.QPageSize.Inch)
-        layout = QtGui.QPageLayout()
-        layout.setPageSize(page_size)
+        margins = QtCore.QMarginsF(15, 15, 15, 15)
+        layout = QtGui.QPageLayout(QtGui.QPageSize(QtGui.QPageSize.A4),
+                                   QtGui.QPageLayout.Portrait,
+                                   margins)
         self.printToPdf(
             os.path.join(os.getcwd(), "notebook.pdf"),
             layout
@@ -175,9 +176,6 @@ def print_pdf():
         except:
             pass
 
-
-    # view.page().pdfPrintingFinished.connect(lambda *_: shutdown())
-    # view.load(QtCore.QUrl(url))
     page.pdfPrintingFinished.connect(lambda *_: shutdown())
     page.load(QtCore.QUrl(url))
 
