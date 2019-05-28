@@ -7,3 +7,4 @@ envs/
 node_modules/
 Untitled*.*
 .coverage
+.coverage*

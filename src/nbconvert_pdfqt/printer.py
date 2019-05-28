@@ -58,13 +58,13 @@ class QPDFPage(QtWebEngineWidgets.QWebEnginePage):
 
     def _load_finished(self, finished):
         self.runJavaScript(APPLY_STYLE)
-        QtCore.QTimer.singleShot(8000, lambda *_: self._measure())
 
+    @QtCore.pyqtSlot()
     def _measure(self):
         self.runJavaScript(MEASURE, lambda size: self._emit_pdf(size))
 
     def _emit_pdf(self, size):
-        margins = QtCore.QMarginsF(15, 15, 15, 15)
+        margins = QtCore.QMarginsF(0, 0, 0, 0)
         layout = QtGui.QPageLayout(QtGui.QPageSize(QtGui.QPageSize.A4),
                                    QtGui.QPageLayout.Portrait,
                                    margins)

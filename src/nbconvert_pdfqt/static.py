@@ -10,11 +10,14 @@ LAB_STYLE = """
         --jp-border-color0: transparent;
         --jp-border-color1: transparent;
         --jp-border-color2: transparent;
+        --nbcqpdf-height: 1080px;
     }
     body,
     body .jp-ApplicationShell {
         width: 1920px;
-        height: 2024px;
+        height: var(--nbcqpdf-height);
+        min-height: var(--nbcqpdf-height);
+        max-height: var(--nbcqpdf-height);
     }
     body .jp-InputArea-editor {
         border: 0;
@@ -56,44 +59,99 @@ FORCE_DEV = """
 """
 
 SINGLE_DOCUMENT = """
-    window.lab.shell.removeClass('jp-mod-devMode');
-    setTimeout(function(){
-        window.lab.commands.execute(
-            'application:set-mode',
-            {mode: 'single-document'}
-        );
-        if(document.querySelector('body[data-left-sidebar-widget]')) {
-            window.lab.commands.execute('application:toggle-left-area');
-        }
-    }, %s);
+    ;(function(){
+        var cmd = 'application:set-mode';
+        var interval = setInterval(function(){
+            var lab = window.lab
+            if(
+                !lab ||
+                !lab.commands ||
+                lab.commands.listCommands().indexOf(cmd) == -1
+            ) {
+                return;
+            }
+            clearInterval(interval);
+            lab.shell.removeClass('jp-mod-devMode');
+            lab.commands.execute(cmd, {mode: 'single-document'});
+            if(document.querySelector('body[data-left-sidebar-widget]')) {
+                lab.commands.execute('application:toggle-left-area');
+            }
+        }, 1000);
+    })();
+"""
+
+MEASURE = """
+    var bb = document.querySelector(".jp-Cell:last-child").getBoundingClientRect();
+    var style = document.createElement('style');
+    style.textContent = `body { --nbcqpdf-height: ${bb.bottom + 500}px; }`;
+    document.body.appendChild(style);
+    [bb.bottom, bb.right]
 """
 
 RUN_ALL = """
-    setTimeout(function(){
-        console.error('running all cells');
-        window.lab.commands.execute('notebook:run-all-cells');
-    }, 3000);
-"""
+    ;(function(){
+        function evaluateXPath(aNode, aExpr) {
+          var xpe = new XPathEvaluator();
+          var nsResolver = xpe.createNSResolver(aNode.ownerDocument == null ?
+            aNode.documentElement : aNode.ownerDocument.documentElement);
+          var result = xpe.evaluate(aExpr, aNode, nsResolver, 0, null);
+          var found = [];
+          var res;
+          while (res = result.iterateNext())
+            found.push(res);
+          return found;
+        }
 
-MEASURE = f"""
-    var bb = document.querySelector(".jp-Cell:last-child").getBoundingClientRect();
-    var node = document.querySelector(".jp-ApplicationShell").style;
-    var body = document.body.style;
-    node.height = node.minHeight = body.height = body.minHeight = bb.bottom + "px";
-    {SINGLE_DOCUMENT % 0}
-    [bb.bottom, bb.right]
-"""
+        var cmd = 'notebook:run-all-cells';
+        var interval = setInterval(function(){
+            var lab = window.lab
+            if(
+                !lab ||
+                !lab.commands ||
+                lab.commands.listCommands().indexOf(cmd) == -1
+            ) {
+                return;
+            }
+            if(!document.querySelector(`*[title="Kernel Idle"]`)){
+                return;
+            }
+            clearInterval(interval);
+            lab.commands.execute(cmd)
+                .then(function(){
+                    var busyInterval = setInterval(function(){
+                        if(evaluateXPath(document, '//*[text() = "[*]:"]').length) {
+                            return;
+                        }
+                        %s
+                        lab.shell.mode = 'multiple-document';
+                        lab.shell.mode = 'single-document';
+                        clearInterval(busyInterval);
+                        __QT__.measure();
+                    }, 1000);
+                })
+        }, 1000);
+    })();
+""" % MEASURE
+
 
 APPLY_STYLE = f"""
     var style = document.createElement("style");
     style.textContent = `{LAB_STYLE}`;
     document.body.appendChild(style);
-    {SINGLE_DOCUMENT % 2000}
+    {SINGLE_DOCUMENT}
     {RUN_ALL}
 """
 
 BRIDGE = """
 new QWebChannel(qt.webChannelTransport, function(channel) {
-    channel.objects.page.print('Hello world!');
+    window.__QT__ = {
+        print: function(text){
+            channel.objects.page.print(text || "Hello World!");
+        },
+        measure: function(){
+            channel.objects.page._measure();
+        }
+    }
+    __QT__.print();
 });
 """
